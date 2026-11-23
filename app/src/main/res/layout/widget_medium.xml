@@ -1,0 +1,44 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/md_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <ImageView android:id="@+id/md_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/widget_card_bg" android:contentDescription="@null" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="12dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical">
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                <TextView android:id="@+id/md_lbl_screen" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="SCREEN" android:textColor="#6B7088" android:textSize="8sp" />
+                <TextView android:id="@+id/md_screen" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0m" android:textColor="#282C3F" android:textSize="16sp" android:textStyle="bold" android:maxLines="1" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="8dp">
+                <TextView android:id="@+id/md_lbl_focus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="FOCUS" android:textColor="#6B7088" android:textSize="8sp" />
+                <TextView android:id="@+id/md_focus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0m" android:textColor="#282C3F" android:textSize="16sp" android:textStyle="bold" android:maxLines="1" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="8dp">
+                <TextView android:id="@+id/md_lbl_xp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="XP" android:textColor="#6B7088" android:textSize="8sp" />
+                <TextView android:id="@+id/md_xp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="+0" android:textColor="#FF3F6C" android:textSize="16sp" android:textStyle="bold" android:maxLines="1" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="8dp">
+                <TextView android:id="@+id/md_lbl_habits" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="HABITS" android:textColor="#6B7088" android:textSize="8sp" />
+                <TextView android:id="@+id/md_habits" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0/0" android:textColor="#282C3F" android:textSize="16sp" android:textStyle="bold" android:maxLines="1" />
+            </LinearLayout>
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="6dp">
+            <FrameLayout android:id="@+id/md_task" android:layout_width="0dp" android:layout_weight="1" android:layout_height="32dp" android:layout_marginStart="0dp">
+            <ImageView android:id="@+id/md_task_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/widget_pill_bg" android:contentDescription="@null" />
+            <TextView android:id="@+id/md_task_tx" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:text="＋ Task" android:textColor="#FFFFFF" android:textSize="12sp" android:textStyle="bold" android:maxLines="1" />
+        </FrameLayout>
+            <FrameLayout android:id="@+id/md_note" android:layout_width="0dp" android:layout_weight="1" android:layout_height="32dp" android:layout_marginStart="6dp">
+            <ImageView android:id="@+id/md_note_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/widget_pill_bg" android:contentDescription="@null" />
+            <TextView android:id="@+id/md_note_tx" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:text="📝 Note" android:textColor="#FFFFFF" android:textSize="12sp" android:textStyle="bold" android:maxLines="1" />
+        </FrameLayout>
+            <FrameLayout android:id="@+id/md_voice" android:layout_width="0dp" android:layout_weight="1" android:layout_height="32dp" android:layout_marginStart="6dp">
+            <ImageView android:id="@+id/md_voice_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/widget_pill_bg" android:contentDescription="@null" />
+            <TextView android:id="@+id/md_voice_tx" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:text="🎤 Voice" android:textColor="#FFFFFF" android:textSize="12sp" android:textStyle="bold" android:maxLines="1" />
+        </FrameLayout>
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

@@ -1,0 +1,18 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/sm_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <ImageView android:id="@+id/sm_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/widget_card_bg" android:contentDescription="@null" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="12dp">
+        <TextView android:id="@+id/sm_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="timevora" android:textColor="#FF3F6C" android:textSize="11sp" android:textStyle="bold" android:letterSpacing="0.12" />
+        <View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
+        <TextView android:id="@+id/sm_lbl_focus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="FOCUS TODAY" android:textColor="#6B7088" android:textSize="8sp" />
+        <TextView android:id="@+id/sm_focus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0m" android:textColor="#282C3F" android:textSize="24sp" android:textStyle="bold" android:maxLines="1" />
+        <TextView android:id="@+id/sm_xp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="+0 XP" android:textColor="#FF3F6C" android:textSize="12sp" android:textStyle="bold" android:layout_marginTop="2dp" android:maxLines="1" />
+        <TextView android:id="@+id/sm_habits" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0/0 habits" android:textColor="#6B7088" android:textSize="11sp" android:layout_marginTop="2dp" android:maxLines="1" />
+    </LinearLayout>
+</FrameLayout>

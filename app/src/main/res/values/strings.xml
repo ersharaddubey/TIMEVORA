@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">timevora</string>
+    <string name="widget_label_large">timevora Dashboard</string>
+    <string name="widget_label_medium">timevora Overview</string>
+    <string name="widget_label_small">timevora Focus</string>
+    <string name="widget_label_focus">timevora Focus Timer</string>
+</resources>
