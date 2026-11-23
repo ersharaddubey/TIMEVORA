@@ -1,0 +1,375 @@
+{
+  "features": [
+    {
+      "id": "timesaving",
+      "route": "TimeSaving",
+      "emoji": "⚡",
+      "title": "25 Time-Saving Features",
+      "tagline": "Dump, Top 3, focus tools — protect your day",
+      "why": "Dump tasks, pick Top 3, match free minutes, shut down cleanly, and train better time estimates — without planning taking longer than the work.",
+      "whyHi": "दिमाग खाली करो, Top 3 चुनो, खाली समय में सही काम करो, daily shutdown से सुबह आसान बनाओ।",
+      "useWhen": "When you feel busy but not productive, or when planning itself is eating the day.",
+      "goal": "productive",
+      "points": [
+        "Smart Task Dump — write everything once, get separate planner tasks",
+        "Top 3 Today — only three priorities so the list does not overwhelm you",
+        "Quick Task Matcher — pick work that fits 5 / 10 / 15 / 30 free minutes",
+        "Routine templates, checklists, shutdown and tomorrow-ready flows",
+        "Time calculator and estimate trainer to improve planning accuracy"
+      ],
+      "steps": [
+        "Open More → 25 Time-Saving Features (or this card)",
+        "Pick a tool from sections A–E",
+        "Use Planner and Focus together with the tools"
+      ],
+      "promise": "Save hours every week with small, focused tools.",
+      "color": "#E3F2FD",
+      "order": 0,
+      "enabled": true,
+      "live": false
+    },
+    {
+      "id": "planner",
+      "route": "Planner",
+      "emoji": "📅",
+      "title": "Planner",
+      "tagline": "Tasks, meetings & day plan for work and life",
+      "why": "Your day stays in one place — work tasks, meetings, errands — so nothing slips and your head stays clear.",
+      "whyHi": "Poora din ek jagah plan karo, kuch bhoolna nahi padega.",
+      "useWhen": "When you plan a workday, meetings, projects or personal to-dos.",
+      "goal": "productive",
+      "points": [
+        "Quick capture: add a task, note or voice note from a notification or widget",
+        "Add tasks, meetings and routines with a time",
+        "Repeat daily, Mon-Fri or weekly",
+        "Get a reminder with a Mark done button"
+      ],
+      "steps": [
+        "Open Planner and tap Add",
+        "Set title, time and reminder",
+        "Tick it off when done"
+      ],
+      "promise": "Less mental clutter. More follow-through.",
+      "color": "#FFE7ED",
+      "order": 1,
+      "enabled": true,
+      "live": false
+    },
+    {
+      "id": "focus",
+      "route": "Focus",
+      "emoji": "⏱️",
+      "title": "Focus Timer",
+      "tagline": "Pomodoro cycles, Strict Mode and calm sounds",
+      "why": "One distraction-free block at a time gives you more real work than hours of half attention.",
+      "whyHi": "Phone se door, ek kaam pe poora dhyan.",
+      "useWhen": "When you must finish something important: homework, coding, writing, revision.",
+      "goal": "productive",
+      "points": [
+        "Pomodoro auto-cycle: 25/5 rounds run by themselves",
+        "Strict Mode: a typed phrase makes quitting harder (no app blocking)",
+        "Pick 15, 25, 45, 60 min or a custom time",
+        "See how much phone time leaked into the session",
+        "Play rain, café, white noise or lo-fi (offline) with a sleep timer",
+        "Get an alert when the session ends"
+      ],
+      "steps": [
+        "Open Focus and pick a duration",
+        "Press Start and keep the phone down",
+        "Review the result when the timer ends"
+      ],
+      "promise": "One session at a time. One win at a time.",
+      "color": "#FFEEE6",
+      "order": 2,
+      "enabled": true,
+      "live": false
+    },
+    {
+      "id": "habits",
+      "route": "Habits",
+      "emoji": "🔥",
+      "title": "Habits & XP",
+      "tagline": "Streaks, XP and achievements",
+      "why": "Small daily actions become automatic when you can see your streak growing.",
+      "whyHi": "Roz ki chhoti aadat se badi success, streak aur XP ke saath.",
+      "useWhen": "When you want to build a routine like exercise, reading, water or revision.",
+      "goal": "productive",
+      "points": [
+        "Daily, weekday or weekly habits",
+        "Earn XP and protect your streak",
+        "7-day consistency summary"
+      ],
+      "steps": [
+        "Add a habit and choose its schedule",
+        "Tick it each day to earn XP",
+        "Check your streak and weekly summary"
+      ],
+      "promise": "Make progress visible. Make consistency satisfying.",
+      "color": "#E8F5E9",
+      "order": 3,
+      "enabled": true,
+      "live": false
+    },
+    {
+      "id": "study",
+      "route": "Study",
+      "emoji": "🎓",
+      "title": "Goals & deadlines",
+      "tagline": "Projects, subjects & countdown to deadlines",
+      "why": "Keep projects and exams on track with subjects, deadlines and time logged — for work or study.",
+      "whyHi": "Projects aur deadlines track karo — work ya study dono ke liye.",
+      "useWhen": "When you have deadlines, projects, or exams and want hours + countdown in one place.",
+      "goal": "study",
+      "points": [
+        "Add subjects or project areas",
+        "Set deadline dates with countdown",
+        "Log focused hours against each area"
+      ],
+      "steps": [
+        "Add your subjects and exam dates",
+        "Log every study session",
+        "Watch the countdown and plan revisions"
+      ],
+      "promise": "A calmer route from plan to deadline day.",
+      "color": "#E8EAF6",
+      "order": 4,
+      "enabled": true,
+      "live": false
+    },
+    {
+      "id": "insights",
+      "route": "Insights",
+      "emoji": "📊",
+      "title": "Screen-time Insights",
+      "tagline": "Live usage, app limits & reports",
+      "why": "You can only change what you can see. Know exactly where your phone time goes.",
+      "whyHi": "Dekho phone pe time kahan ja raha hai, phir control karo.",
+      "useWhen": "When you feel you use the phone too much, or want a weekly review.",
+      "goal": "screen",
+      "points": [
+        "Live total and per-app time with seconds",
+        "Today, Week and Month reports",
+        "Export your last 90 days as CSV"
+      ],
+      "steps": [
+        "Give Usage access once",
+        "Open Insights to see today, week and month",
+        "Set a daily goal or per-app limit in Settings"
+      ],
+      "promise": "Know where your time goes. Choose where it goes next.",
+      "color": "#FFF3E0",
+      "order": 5,
+      "enabled": true,
+      "live": false
+    },
+    {
+      "id": "reminders",
+      "route": "Notifications",
+      "emoji": "🔔",
+      "title": "Smart Reminders",
+      "tagline": "The right nudge at the right time",
+      "why": "TIMEORA reminds you, so you do not have to keep checking your phone.",
+      "whyHi": "Sahi waqt pe reminder, bar bar phone kholne ki zarurat nahi.",
+      "useWhen": "When you want alerts for tasks, breaks, screen-time goals, morning report or sleep.",
+      "goal": "productive",
+      "points": [
+        "One place to switch every alert on or off",
+        "Break and goal alerts",
+        "Morning report"
+      ],
+      "steps": [
+        "Open Smart Reminders",
+        "Allow notifications if asked",
+        "Switch on the alerts you want"
+      ],
+      "promise": "Helpful reminders. Fewer reasons to open your phone.",
+      "color": "#FFF0F3",
+      "order": 6,
+      "enabled": true,
+      "live": false
+    },
+    {
+      "id": "coach",
+      "route": "Insights",
+      "emoji": "🧠",
+      "title": "Life Score & Coach",
+      "tagline": "Daily score and what to do next",
+      "why": "One simple score and clear advice tell you what to fix today without any guesswork.",
+      "whyHi": "Ek score aur seedhi salah: aaj kya sudharna hai.",
+      "useWhen": "At the end of the day, or when you are unsure what to improve.",
+      "goal": "productive",
+      "points": [
+        "Life Score from focus, plan, habits, balance and routine",
+        "7-day trend on Home",
+        "Rule-based coach tips, fully on your phone"
+      ],
+      "steps": [
+        "Use planner, focus and habits for a day",
+        "Check your score on Home",
+        "Open Insights for the coach tips"
+      ],
+      "promise": "Know your day in one number.",
+      "color": "#FCE4EC",
+      "order": 7,
+      "enabled": true,
+      "live": false
+    },
+    {
+      "id": "friends",
+      "route": "Friends",
+      "emoji": "🤝",
+      "title": "Friends & Live Rooms",
+      "tagline": "Study or work together, live",
+      "why": "Working next to a friend, even online, keeps you accountable and makes it more fun.",
+      "whyHi": "Dost ke saath live padho ya kaam karo, motivation badhta hai.",
+      "useWhen": "When you want a study partner, a work-from-home group or a focus challenge.",
+      "goal": "social",
+      "points": [
+        "Create a room and share its code",
+        "See friends focusing live and the leaderboard",
+        "Offline scorecards for challenges"
+      ],
+      "steps": [
+        "Open Friends & Live Rooms",
+        "Create a room and share the code",
+        "Press Start focusing and watch the room"
+      ],
+      "promise": "Progress feels better together.",
+      "color": "#E0F7FA",
+      "order": 8,
+      "enabled": true,
+      "live": true
+    },
+    {
+      "id": "sleep",
+      "route": "Sleep",
+      "emoji": "🌙",
+      "title": "Sleep & Night Routine",
+      "tagline": "Wind-down, bedtime and wake-up alerts",
+      "why": "Late-night scrolling steals sleep. A gentle wind-down protects your energy for tomorrow.",
+      "whyHi": "Raat ko phone kam, neend poori, subah fresh.",
+      "useWhen": "If you sleep late, wake up tired or scroll in bed.",
+      "goal": "sleep",
+      "points": [
+        "Bedtime and wake-up reminders",
+        "Wind-down alert 15 to 60 min before bed",
+        "Restored after reboot"
+      ],
+      "steps": [
+        "Open Sleep & Night Routine",
+        "Set bedtime, wake time and wind-down",
+        "Switch it on in Smart Reminders"
+      ],
+      "promise": "Better nights. Better days.",
+      "color": "#F3E5F5",
+      "order": 9,
+      "enabled": true,
+      "live": false
+    },
+    {
+      "id": "pause",
+      "route": "Pause",
+      "emoji": "🧘",
+      "title": "App Opening Pause",
+      "tagline": "A short pause before distracting apps",
+      "why": "A few seconds of pause breaks the automatic habit of opening apps without thinking.",
+      "whyHi": "App kholne se pehle ruko aur socho.",
+      "useWhen": "When you open social or video apps without meaning to.",
+      "goal": "screen",
+      "points": [
+        "3, 5, 10 or 15 second pause",
+        "Choose how often it repeats",
+        "Continue or go back Home"
+      ],
+      "steps": [
+        "Open App Opening Pause",
+        "Allow display over other apps",
+        "Switch it on and pick a duration"
+      ],
+      "promise": "Open apps on purpose, not by reflex.",
+      "color": "#EDE7F6",
+      "order": 10,
+      "enabled": true,
+      "live": false
+    },
+    {
+      "id": "wrapped",
+      "route": "Wrapped",
+      "emoji": "🎬",
+      "title": "Weekly Wrapped",
+      "tagline": "Your week as swipeable story cards",
+      "why": "Seeing your week as a story makes your habits easy to understand and fun to share.",
+      "whyHi": "Har hafte apna top app, best din aur bachaya hua time cards mein dekho.",
+      "useWhen": "Every Sunday evening, or any time you want to see how your week went.",
+      "goal": "screen",
+      "points": [
+        "Your top app and top category",
+        "Your most productive day",
+        "Time saved vs last week",
+        "Share any card as an image"
+      ],
+      "steps": [
+        "Open Weekly Wrapped",
+        "Swipe or tap through the cards",
+        "Press Share to send a card"
+      ],
+      "promise": "Your week, wrapped. Only on your phone until you share it.",
+      "color": "#FFE7ED",
+      "order": 11,
+      "enabled": true,
+      "live": false
+    }
+  ],
+  "banners": [
+    {
+      "id": "b1",
+      "emoji": "✦",
+      "title": "Make every minute count",
+      "subtitle": "Plan, focus and grow with TIMEORA",
+      "color": "#FF3F6C",
+      "target": "planner",
+      "order": 1,
+      "enabled": true
+    },
+    {
+      "id": "b2",
+      "emoji": "🤝",
+      "title": "Study together, live",
+      "subtitle": "Create a room and share the code with friends",
+      "color": "#FF905A",
+      "target": "friends",
+      "order": 2,
+      "enabled": true
+    },
+    {
+      "id": "b3",
+      "emoji": "🌙",
+      "title": "Sleep better tonight",
+      "subtitle": "Set a wind-down reminder in 30 seconds",
+      "color": "#7E57C2",
+      "target": "sleep",
+      "order": 3,
+      "enabled": true
+    },
+    {
+      "id": "b4",
+      "emoji": "🎬",
+      "title": "Your Weekly Wrapped",
+      "subtitle": "Top app, best day and time saved, as story cards",
+      "color": "#7E57C2",
+      "target": "wrapped",
+      "order": 4,
+      "enabled": true
+    }
+  ],
+  "announcement": {
+    "enabled": true,
+    "text": "New: 25 Time-Saving Features under More — dump tasks, Top 3, quick matchers and daily shutdown."
+  },
+  "tips": [
+    "Try 25 Time-Saving Features → Smart Task Dump, then pick your Top 3 for today.",
+    "Start with one feature. Add the next one when the first feels easy.",
+    "Put your phone face-down during a focus session.",
+    "Plan tomorrow tonight: it takes two minutes."
+  ]
+}

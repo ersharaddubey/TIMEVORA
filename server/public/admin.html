@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TIMEORA Admin · v5.7</title>
+  <style>
+    :root {
+      --bg: #0f172a; --card: #1e293b; --ink: #e2e8f0; --muted: #94a3b8;
+      --pink: #f43f6c; --ok: #34d399; --line: #334155;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, sans-serif; background: var(--bg); color: var(--ink); }
+    a { color: var(--pink); }
+    header { padding: 16px 20px; border-bottom: 1px solid var(--line); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    header h1 { font-size: 18px; margin: 0; }
+    header .spacer { flex: 1; }
+    nav button, .btn {
+      background: var(--card); color: var(--ink); border: 1px solid var(--line);
+      border-radius: 10px; padding: 8px 14px; cursor: pointer; font-weight: 600;
+    }
+    nav button.active, .btn.primary { background: var(--pink); border-color: var(--pink); color: #fff; }
+    .btn.danger { background: #7f1d1d; border-color: #991b1b; }
+    main { max-width: 1100px; margin: 0 auto; padding: 20px; }
+    .card { background: var(--card); border-radius: 16px; padding: 16px; margin-bottom: 14px; border: 1px solid var(--line); }
+    .muted { color: var(--muted); font-size: 13px; }
+    label { display: block; font-size: 12px; color: var(--muted); margin: 8px 0 4px; }
+    input, textarea, select {
+      width: 100%; background: #0b1220; border: 1px solid var(--line); color: var(--ink);
+      border-radius: 10px; padding: 10px 12px; font: inherit;
+    }
+    textarea { min-height: 72px; resize: vertical; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .row > * { flex: 1; min-width: 140px; }
+    .hidden { display: none !important; }
+    #loginBox { max-width: 360px; margin: 80px auto; }
+    .tag { display: inline-block; background: #0b1220; border-radius: 999px; padding: 2px 10px; font-size: 11px; color: var(--muted); }
+    .ok { color: var(--ok); }
+    .feat-grid { display: grid; gap: 12px; }
+    @media (min-width: 800px) { .feat-grid { grid-template-columns: 1fr 1fr; } }
+  </style>
+</head>
+<body>
+  <div id="loginBox" class="card">
+    <h2 style="margin-top:0">TIMEORA Admin</h2>
+    <p class="muted">v5.7.0 · catalog, analytics, opt-in sync devices</p>
+    <label>User ID</label>
+    <input id="user" autocomplete="username" />
+    <label>Password</label>
+    <input id="pass" type="password" autocomplete="current-password" />
+    <p id="loginErr" class="muted" style="color:#f87171"></p>
+    <button class="btn primary" style="width:100%;margin-top:12px" onclick="login()">Sign in</button>
+  </div>
+
+  <div id="app" class="hidden">
+    <header>
+      <h1>TIMEORA Admin</h1>
+      <span class="tag" id="metaTag">…</span>
+      <div class="spacer"></div>
+      <nav>
+        <button class="active" data-tab="dash" onclick="tab('dash')">Dashboard</button>
+        <button data-tab="features" onclick="tab('features')">Features</button>
+        <button data-tab="banners" onclick="tab('banners')">Banners</button>
+        <button data-tab="content" onclick="tab('content')">Tips & sounds</button>
+        <button data-tab="devices" onclick="tab('devices')">Sync devices</button>
+      </nav>
+      <button class="btn" onclick="logout()">Sign out</button>
+    </header>
+    <main>
+      <section id="tab-dash">
+        <div class="card">
+          <h3 style="margin-top:0">Dashboard</h3>
+          <p class="muted" id="dashSummary">Loading…</p>
+          <div class="row" id="dashCards"></div>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0">What you can manage</h3>
+          <ul id="manageList" class="muted"></ul>
+          <h4>App-only (not admin)</h4>
+          <ul id="notManageList" class="muted"></ul>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0">Feature opens (anonymous)</h3>
+          <table><thead><tr><th>Feature id</th><th>Count</th></tr></thead><tbody id="eventRows"></tbody></table>
+        </div>
+      </section>
+
+      <section id="tab-features" class="hidden">
+        <div class="card row">
+          <button class="btn primary" onclick="saveCatalog()">Save catalog to server</button>
+          <button class="btn" onclick="resetCatalog()">Reset to app seed (v5.7)</button>
+        </div>
+        <p class="muted">Aligned with app routes: TimeSaving, Planner, Focus, Habits, Study (Goals & deadlines), Insights, Notifications, Friends, Sleep, Pause, Wrapped.</p>
+        <div class="feat-grid" id="featureList"></div>
+      </section>
+
+      <section id="tab-banners" class="hidden">
+        <div class="card">
+          <button class="btn primary" onclick="addBanner()">Add banner</button>
+          <button class="btn primary" onclick="saveCatalog()">Save</button>
+        </div>
+        <div id="bannerList"></div>
+      </section>
+
+      <section id="tab-content" class="hidden">
+        <div class="card">
+          <label>Announcement (Home bar — empty to hide)</label>
+          <input id="announcement" />
+          <label>Daily tips (one per line)</label>
+          <textarea id="tips"></textarea>
+          <label>Cloud ambient sounds (JSON array: id snd-xxxx, label, emoji, url https)</label>
+          <textarea id="sounds" style="min-height:120px"></textarea>
+          <p class="muted">Sound ids must match <code>^snd-[a-z0-9]{4,24}$</code> and url must be https.</p>
+          <button class="btn primary" onclick="saveContent()">Save content</button>
+        </div>
+      </section>
+
+      <section id="tab-devices" class="hidden">
+        <div class="card">
+          <p class="muted">Opt-in “Back up my data” only. MongoDB stores table snapshots per device. Admin sees counts, not full personal rows.</p>
+          <p class="muted">Tables: <span id="syncTables"></span></p>
+          <table>
+            <thead><tr><th>Device</th><th>Last sync</th><th>Rows</th><th></th></tr></thead>
+            <tbody id="deviceRows"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    let token = localStorage.getItem('timeora_admin_token') || '';
+    let catalog = null;
+
+    async function api(path, opts = {}) {
+      const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+      const r = await fetch(path, { ...opts, headers });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.error || r.statusText);
+      return data;
+    }
+
+    async function login() {
+      document.getElementById('loginErr').textContent = '';
+      try {
+        const data = await api('/api/admin/login', {
+          method: 'POST',
+          body: JSON.stringify({
+            user: document.getElementById('user').value.trim(),
+            pass: document.getElementById('pass').value
+          })
+        });
+        token = data.token;
+        localStorage.setItem('timeora_admin_token', token);
+        await boot();
+      } catch (e) {
+        document.getElementById('loginErr').textContent = e.message;
+      }
+    }
+
+    async function logout() {
+      try { await api('/api/admin/logout', { method: 'POST', body: '{}' }); } catch (_) {}
+      token = '';
+      localStorage.removeItem('timeora_admin_token');
+      document.getElementById('app').classList.add('hidden');
+      document.getElementById('loginBox').classList.remove('hidden');
+    }
+
+    function tab(name) {
+      document.querySelectorAll('nav button').forEach((b) => b.classList.toggle('active', b.dataset.tab === name));
+      ['dash','features','banners','content','devices'].forEach((t) => {
+        document.getElementById('tab-' + t).classList.toggle('hidden', t !== name);
+      });
+      if (name === 'devices') loadDevices();
+      if (name === 'dash') loadDash();
+    }
+
+    async function boot() {
+      try {
+        const me = await api('/api/admin/me');
+        document.getElementById('loginBox').classList.add('hidden');
+        document.getElementById('app').classList.remove('hidden');
+        document.getElementById('metaTag').textContent =
+          me.user + ' · app ' + me.version + (me.mongo ? ' · MongoDB' : ' · memory');
+        catalog = await api('/api/admin/catalog');
+        renderFeatures();
+        renderBanners();
+        renderContent();
+        await loadDash();
+      } catch (e) {
+        token = '';
+        localStorage.removeItem('timeora_admin_token');
+        document.getElementById('app').classList.add('hidden');
+        document.getElementById('loginBox').classList.remove('hidden');
+      }
+    }
+
+    async function loadDash() {
+      const [stats, meta] = await Promise.all([api('/api/admin/stats'), api('/api/admin/meta')]);
+      document.getElementById('dashSummary').innerHTML =
+        '<span class="ok">OK</span> · ' + stats.featuresEnabled + '/' + stats.featuresTotal +
+        ' features · ' + stats.devices + ' backup devices · ' + stats.rooms + ' rooms';
+      document.getElementById('dashCards').innerHTML = [
+        ['Features', stats.featuresEnabled],
+        ['Backup devices', stats.devices],
+        ['Live rooms', stats.rooms],
+        ['Event types', stats.events.length]
+      ].map(([k,v]) => '<div class="card" style="margin:0"><div class="muted">'+k+'</div><div style="font-size:28px;font-weight:800">'+v+'</div></div>').join('');
+      document.getElementById('eventRows').innerHTML = (stats.events || []).map((e) =>
+        '<tr><td>'+esc(e._id)+'</td><td>'+e.count+'</td></tr>').join('') || '<tr><td colspan="2" class="muted">No events yet</td></tr>';
+      document.getElementById('manageList').innerHTML = (meta.manageable || []).map((x) => '<li>'+esc(x)+'</li>').join('');
+      document.getElementById('notManageList').innerHTML = (meta.notManagedInAdmin || []).map((x) => '<li>'+esc(x)+'</li>').join('');
+      document.getElementById('syncTables').textContent = (meta.syncTables || []).join(', ');
+    }
+
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function renderFeatures() {
+      const el = document.getElementById('featureList');
+      el.innerHTML = (catalog.features || []).map((f, i) => `
+        <div class="card" data-i="${i}">
+          <div class="row">
+            <div><label>id</label><input data-k="id" value="${esc(f.id)}" /></div>
+            <div><label>route</label><input data-k="route" value="${esc(f.route)}" /></div>
+            <div><label>emoji</label><input data-k="emoji" value="${esc(f.emoji)}" /></div>
+            <div><label>order</label><input data-k="order" type="number" value="${Number(f.order)||0}" /></div>
+          </div>
+          <label>title</label><input data-k="title" value="${esc(f.title)}" />
+          <label>tagline</label><input data-k="tagline" value="${esc(f.tagline)}" />
+          <label>why</label><textarea data-k="why">${esc(f.why)}</textarea>
+          <label>useWhen</label><textarea data-k="useWhen">${esc(f.useWhen || '')}</textarea>
+          <div class="row">
+            <div><label>color</label><input data-k="color" value="${esc(f.color || '#FFE7ED')}" /></div>
+            <div><label>goal</label><input data-k="goal" value="${esc(f.goal || 'productive')}" /></div>
+            <div><label>enabled</label>
+              <select data-k="enabled">
+                <option value="true" ${f.enabled !== false ? 'selected' : ''}>yes</option>
+                <option value="false" ${f.enabled === false ? 'selected' : ''}>no</option>
+              </select>
+            </div>
+            <div><label>live badge</label>
+              <select data-k="live">
+                <option value="false" ${!f.live ? 'selected' : ''}>no</option>
+                <option value="true" ${f.live ? 'selected' : ''}>yes</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function collectFeatures() {
+      return [...document.querySelectorAll('#featureList .card')].map((card) => {
+        const g = (k) => card.querySelector('[data-k="'+k+'"]')?.value ?? '';
+        const prev = catalog.features.find((x) => x.id === g('id')) || {};
+        return {
+          ...prev,
+          id: g('id'),
+          route: g('route'),
+          emoji: g('emoji'),
+          order: Number(g('order')) || 0,
+          title: g('title'),
+          tagline: g('tagline'),
+          why: g('why'),
+          useWhen: g('useWhen'),
+          color: g('color'),
+          goal: g('goal'),
+          enabled: g('enabled') === 'true',
+          live: g('live') === 'true'
+        };
+      });
+    }
+
+    function renderBanners() {
+      const el = document.getElementById('bannerList');
+      el.innerHTML = (catalog.banners || []).map((b, i) => `
+        <div class="card" data-bi="${i}">
+          <div class="row">
+            <div><label>id</label><input data-bk="id" value="${esc(b.id)}" /></div>
+            <div><label>emoji</label><input data-bk="emoji" value="${esc(b.emoji)}" /></div>
+            <div><label>target feature id</label><input data-bk="target" value="${esc(b.target)}" /></div>
+            <div><label>enabled</label>
+              <select data-bk="enabled">
+                <option value="true" ${b.enabled !== false ? 'selected' : ''}>yes</option>
+                <option value="false" ${b.enabled === false ? 'selected' : ''}>no</option>
+              </select>
+            </div>
+          </div>
+          <label>title</label><input data-bk="title" value="${esc(b.title)}" />
+          <label>subtitle</label><input data-bk="subtitle" value="${esc(b.subtitle)}" />
+          <label>color</label><input data-bk="color" value="${esc(b.color || '#FF3F6C')}" />
+          <button class="btn danger" onclick="this.closest('.card').remove()">Remove</button>
+        </div>
+      `).join('');
+    }
+
+    function collectBanners() {
+      return [...document.querySelectorAll('#bannerList .card')].map((card) => {
+        const g = (k) => card.querySelector('[data-bk="'+k+'"]')?.value ?? '';
+        return {
+          id: g('id'), emoji: g('emoji'), target: g('target'), title: g('title'),
+          subtitle: g('subtitle'), color: g('color'), enabled: g('enabled') === 'true'
+        };
+      });
+    }
+
+    function addBanner() {
+      catalog.banners = catalog.banners || [];
+      catalog.banners.push({ id: 'b' + Date.now(), emoji: '✦', title: 'New banner', subtitle: '', color: '#FF3F6C', target: 'focus', enabled: true });
+      renderBanners();
+    }
+
+    function renderContent() {
+      const a = catalog.announcement;
+      document.getElementById('announcement').value = typeof a === 'object' ? (a.text || '') : (a || '');
+      document.getElementById('tips').value = (catalog.tips || []).join('\n');
+      document.getElementById('sounds').value = JSON.stringify(catalog.sounds || [], null, 2);
+    }
+
+    async function saveCatalog() {
+      catalog.features = collectFeatures();
+      catalog.banners = collectBanners();
+      const ann = document.getElementById('announcement').value.trim();
+      catalog.announcement = ann ? { enabled: true, text: ann } : { enabled: false, text: '' };
+      catalog.tips = document.getElementById('tips').value.split('\n').map((s) => s.trim()).filter(Boolean);
+      try {
+        catalog.sounds = JSON.parse(document.getElementById('sounds').value || '[]');
+      } catch (e) {
+        alert('Sounds JSON invalid'); return;
+      }
+      await api('/api/admin/catalog', { method: 'PUT', body: JSON.stringify(catalog) });
+      alert('Catalog saved');
+      catalog = await api('/api/admin/catalog');
+      renderFeatures(); renderBanners(); renderContent();
+    }
+
+    async function saveContent() {
+      await saveCatalog();
+    }
+
+    async function resetCatalog() {
+      if (!confirm('Reset catalog to seed-catalog.json (app v5.7)?')) return;
+      const r = await api('/api/admin/catalog/reset', { method: 'POST', body: '{}' });
+      catalog = r.catalog;
+      renderFeatures(); renderBanners(); renderContent();
+      alert('Reset done');
+    }
+
+    async function loadDevices() {
+      const data = await api('/api/admin/devices');
+      document.getElementById('deviceRows').innerHTML = (data.devices || []).map((d) => {
+        const counts = d.rowCounts || {};
+        const total = Object.values(counts).reduce((a, b) => a + (Number(b) || 0), 0);
+        const last = d.lastSync ? new Date(d.lastSync).toLocaleString() : '—';
+        return `<tr>
+          <td><code>${esc(d.deviceId)}</code></td>
+          <td>${esc(last)}</td>
+          <td>${total}</td>
+          <td><button class="btn danger" onclick="wipeDevice('${esc(d.deviceId)}')">Wipe</button></td>
+        </tr>`;
+      }).join('') || '<tr><td colspan="4" class="muted">No devices</td></tr>';
+    }
+
+    async function wipeDevice(id) {
+      if (!confirm('Delete all backup data for ' + id + '?')) return;
+      await api('/api/admin/devices/' + encodeURIComponent(id), { method: 'DELETE' });
+      loadDevices();
+    }
+
+    if (token) boot();
+  </script>
+</body>
+</html>

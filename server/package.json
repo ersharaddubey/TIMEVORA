@@ -1,0 +1,16 @@
+{
+  "name": "timeora-server",
+  "version": "5.7.0",
+  "description": "TIMEORA API + admin panel (catalog, rooms, sync → MongoDB)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "mongodb": "^6.12.0"
+  }
+}
