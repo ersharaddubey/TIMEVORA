@@ -22,7 +22,7 @@ const PORT = Number(process.env.PORT || 3000);
 const MONGODB_URI = process.env.MONGODB_URI || '';
 const ADMIN_USER = process.env.ADMIN_USER || 'admin';
 const ADMIN_PASS = process.env.ADMIN_PASS || 'admin';
-const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(24).toString('hex');
+const SESSION_SECRET = process.env.SESSION_SECRET || (process.env.VERCEL ? '' : crypto.randomBytes(24).toString('hex'));
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
 
 const SEED_PATH = path.join(__dirname, 'seed-catalog.json');
@@ -36,6 +36,8 @@ const SYNC_TABLES = [
 ];
 
 let db = null;
+let mongoClient = null;
+let mongoPromise = null;
 const mem = {
   catalog: null,
   events: [], // { feature, at }
@@ -50,21 +52,39 @@ function loadSeedCatalog() {
 }
 
 async function connectMongo() {
+  if (db) return;
+
   if (!MONGODB_URI || !MongoClient) {
-    console.warn('[timeora] MONGODB_URI / driver missing — using in-memory store (dev only).');
+    if (process.env.VERCEL) {
+      throw new Error('MONGODB_URI or MongoDB driver is missing');
+    }
+    console.warn('[timeora] MongoDB unavailable — using in-memory store (development only).');
     mem.catalog = loadSeedCatalog();
     return;
   }
-  const client = new MongoClient(MONGODB_URI);
-  await client.connect();
-  db = client.db();
+
+  mongoClient = new MongoClient(MONGODB_URI);
+  await mongoClient.connect();
+  db = mongoClient.db();
+
   const cat = await db.collection('catalog').findOne({ _id: 'main' });
   if (!cat) {
     const seed = loadSeedCatalog();
     await db.collection('catalog').insertOne({ _id: 'main', ...seed, updatedAt: new Date() });
     console.log('[timeora] Seeded catalog from seed-catalog.json');
   }
+
   console.log('[timeora] MongoDB connected');
+}
+
+function ensureMongo() {
+  if (!mongoPromise) {
+    mongoPromise = connectMongo().catch((err) => {
+      mongoPromise = null;
+      throw err;
+    });
+  }
+  return mongoPromise;
 }
 
 async function getCatalog() {
@@ -99,23 +119,46 @@ function verifyAdmin(user, pass) {
 }
 
 function issueSession(user) {
-  const token = crypto.randomBytes(24).toString('hex');
-  const exp = Date.now() + 12 * 60 * 60 * 1000;
-  mem.sessions.set(token, { user, exp });
-  return token;
+  if (!SESSION_SECRET) throw new Error('SESSION_SECRET is not configured');
+  const payload = Buffer.from(JSON.stringify({
+    user,
+    exp: Date.now() + 12 * 60 * 60 * 1000
+  })).toString('base64url');
+
+  const signature = crypto
+    .createHmac('sha256', SESSION_SECRET)
+    .update(payload)
+    .digest('base64url');
+
+  return `${payload}.${signature}`;
 }
 
 function sessionOk(req) {
   const auth = req.headers['authorization'] || '';
   const cookie = parseCookies(req)['timeora_admin'] || '';
   const token = (auth.startsWith('Bearer ') ? auth.slice(7) : '') || cookie;
-  if (!token) return false;
-  const s = mem.sessions.get(token);
-  if (!s || s.exp < Date.now()) {
-    mem.sessions.delete(token);
+  if (!token || !SESSION_SECRET) return false;
+
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 2) return false;
+
+    const expected = crypto
+      .createHmac('sha256', SESSION_SECRET)
+      .update(parts[0])
+      .digest();
+
+    const actual = Buffer.from(parts[1], 'base64url');
+    if (actual.length !== expected.length) return false;
+    if (!crypto.timingSafeEqual(actual, expected)) return false;
+
+    const session = JSON.parse(Buffer.from(parts[0], 'base64url').toString('utf8'));
+    if (!session.user || !session.exp || session.exp < Date.now()) return false;
+
+    return session;
+  } catch (_) {
     return false;
   }
-  return s;
 }
 
 function parseCookies(req) {
@@ -417,7 +460,6 @@ async function handle(req, res) {
 
     if (req.method === 'POST' && p === '/api/admin/logout') {
       const cookie = parseCookies(req)['timeora_admin'];
-      if (cookie) mem.sessions.delete(cookie);
       return send(res, 200, { ok: true }, {
         'Set-Cookie': 'timeora_admin=; Path=/; Max-Age=0'
       });
@@ -546,14 +588,26 @@ async function handle(req, res) {
   }
 }
 
+async function handler(req, res) {
+  try {
+    if (process.env.VERCEL && (!MONGODB_URI || !SESSION_SECRET || !process.env.ADMIN_USER || !process.env.ADMIN_PASS)) {
+      throw new Error('Required Vercel environment variables are missing');
+    }
+    await ensureMongo();
+    await handle(req, res);
+  } catch (e) {
+    console.error(e);
+    if (!res.headersSent) {
+      send(res, 500, { error: 'Server configuration or database error' });
+    }
+  }
+}
+
+module.exports = handler;
+
 async function main() {
-  await connectMongo();
-  const server = http.createServer((req, res) => {
-    handle(req, res).catch((e) => {
-      console.error(e);
-      send(res, 500, { error: 'Server error' });
-    });
-  });
+  await ensureMongo();
+  const server = http.createServer(handler);
   server.listen(PORT, () => {
     console.log(`[timeora] v5.7.0 listening on :${PORT}`);
     console.log(`[timeora] Admin UI  http://localhost:${PORT}/admin`);
@@ -561,7 +615,9 @@ async function main() {
   });
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+if (!process.env.VERCEL) {
+  main().catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
+}

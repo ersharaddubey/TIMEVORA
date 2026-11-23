@@ -8,3 +8,5 @@ keystore.properties
 .DS_Store
 .kotlin/
 *.iml
+server/.env
+server/server.js.backup
