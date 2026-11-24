@@ -579,9 +579,49 @@
             <input id="announcement" placeholder="Optional announcement text…" />
             <label>Daily tips (one per line)</label>
             <textarea id="tips" placeholder="Tip one&#10;Tip two"></textarea>
-            <label>Cloud ambient sounds (JSON array: id snd-xxxx, label, emoji, url https)</label>
-            <textarea id="sounds" style="min-height:140px;font-family:ui-monospace,monospace;font-size:12px"></textarea>
-            <p class="muted" style="margin-top:8px">Sound ids must match <code>^snd-[a-z0-9]{4,24}$</code> and url must be https.</p>
+            <div class="btn-row" style="margin-top:16px;margin-bottom:0">
+              <button class="btn primary" onclick="saveContent()">Save content</button>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:20px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+              <div>
+                <strong style="font-size:15px">Cloud ambient sounds</strong>
+                <p class="muted" style="margin:4px 0 0;font-size:13px">MP3 only · max 15 MB · shown in Focus → Ambient in the app</p>
+              </div>
+              <span id="cloudStatus" class="muted" style="font-size:12px">Checking Cloudinary…</span>
+            </div>
+
+            <div id="cloudHelp" class="hidden" style="background:var(--input-bg);border:1px dashed var(--line);border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:var(--muted)">
+              <strong style="color:var(--warn)">Connect Cloudinary first</strong><br/>
+              Add these 3 env vars on your host and redeploy:<br/>
+              <code>CLOUDINARY_CLOUD_NAME</code>, <code>CLOUDINARY_API_KEY</code>, <code>CLOUDINARY_API_SECRET</code><br/>
+              Free account → <a href="https://cloudinary.com" target="_blank" rel="noopener">cloudinary.com</a> → Dashboard.
+              Until then you can still paste a full https MP3 URL in Advanced JSON below.
+            </div>
+
+            <div id="uploadBox" class="hidden" style="margin-bottom:16px">
+              <label class="btn" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer">
+                <input type="file" id="soundFile" accept="audio/mpeg,.mp3" style="display:none" onchange="uploadSound(this)" />
+                Upload MP3
+              </label>
+              <div id="uploadProgress" class="hidden" style="margin-top:10px">
+                <div style="height:6px;background:var(--line);border-radius:4px;overflow:hidden">
+                  <div id="uploadBar" style="height:100%;width:0%;background:var(--pink);transition:width .2s"></div>
+                </div>
+                <p id="uploadMsg" class="muted" style="margin-top:6px;font-size:12px"></p>
+              </div>
+            </div>
+
+            <div id="soundList" style="display:flex;flex-direction:column;gap:10px"></div>
+
+            <details style="margin-top:18px">
+              <summary class="muted" style="cursor:pointer;font-size:13px">Advanced: edit sounds as JSON</summary>
+              <textarea id="sounds" style="min-height:120px;font-family:ui-monospace,monospace;font-size:12px;margin-top:8px"></textarea>
+              <p class="muted" style="margin-top:6px;font-size:12px">Each item: <code>id</code> (snd-xxxx), <code>label</code>, <code>emoji</code>, <code>url</code> (https), optional <code>publicId</code>, <code>hidden</code>. Id must match <code>^snd-[a-z0-9]{4,24}$</code>.</p>
+            </details>
+
             <div class="btn-row" style="margin-top:16px;margin-bottom:0">
               <button class="btn primary" onclick="saveContent()">Save content</button>
             </div>
@@ -827,7 +867,211 @@
       const a = catalog.announcement;
       document.getElementById('announcement').value = typeof a === 'object' ? (a.text || '') : (a || '');
       document.getElementById('tips').value = (catalog.tips || []).join('\n');
+      if (!Array.isArray(catalog.sounds)) catalog.sounds = [];
+      document.getElementById('sounds').value = JSON.stringify(catalog.sounds, null, 2);
+      renderSoundList();
+      loadCloudinaryStatus();
+    }
+
+    function renderSoundList() {
+      const list = document.getElementById('soundList');
+      const sounds = catalog.sounds || [];
+      if (!sounds.length) {
+        list.innerHTML = '<p class="muted" style="font-size:13px">No cloud sounds yet. Upload an MP3 or add via Advanced JSON.</p>';
+        return;
+      }
+      list.innerHTML = sounds.map((s, i) => `
+        <div class="card" data-si="${i}" style="padding:12px 14px;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:start">
+          <input data-sk="emoji" value="${esc(s.emoji || '🎵')}" style="width:48px;text-align:center;font-size:20px;padding:6px" title="Emoji" />
+          <div>
+            <input data-sk="label" value="${esc(s.label || '')}" placeholder="Label" style="margin-bottom:6px" />
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <code style="font-size:11px;color:var(--muted)">${esc(s.id || '')}</code>
+              ${s.url ? `<audio controls preload="none" src="${esc(s.url)}" style="height:32px;max-width:220px"></audio>` : ''}
+            </div>
+            <label style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;color:var(--muted)">
+              <input type="checkbox" data-sk="hidden" ${s.hidden ? 'checked' : ''} /> Hidden (not shown in app)
+            </label>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <button class="btn" title="Move up" onclick="moveSound(${i},-1)">↑</button>
+            <button class="btn" title="Move down" onclick="moveSound(${i},1)">↓</button>
+            <button class="btn danger" title="Delete" onclick="deleteSound(${i})">✕</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function collectSoundsFromUI() {
+      // Prefer UI list if present; fall back to textarea if user edited advanced JSON
+      const cards = [...document.querySelectorAll('#soundList .card')];
+      if (cards.length) {
+        return cards.map((card, idx) => {
+          const prev = (catalog.sounds || [])[idx] || {};
+          const emoji = card.querySelector('[data-sk="emoji"]')?.value?.trim() || '🎵';
+          const label = card.querySelector('[data-sk="label"]')?.value?.trim() || '';
+          const hidden = !!card.querySelector('[data-sk="hidden"]')?.checked;
+          return {
+            id: prev.id,
+            label,
+            emoji,
+            url: prev.url || '',
+            publicId: prev.publicId || undefined,
+            hidden,
+            order: idx
+          };
+        });
+      }
+      try {
+        return JSON.parse(document.getElementById('sounds').value || '[]');
+      } catch (_) {
+        return catalog.sounds || [];
+      }
+    }
+
+    function syncSoundsTextarea() {
       document.getElementById('sounds').value = JSON.stringify(catalog.sounds || [], null, 2);
+    }
+
+    function moveSound(i, dir) {
+      const arr = catalog.sounds || [];
+      const j = i + dir;
+      if (j < 0 || j >= arr.length) return;
+      // pull current edits first
+      catalog.sounds = collectSoundsFromUI();
+      const tmp = catalog.sounds[i];
+      catalog.sounds[i] = catalog.sounds[j];
+      catalog.sounds[j] = tmp;
+      renderSoundList();
+      syncSoundsTextarea();
+    }
+
+    async function deleteSound(i) {
+      catalog.sounds = collectSoundsFromUI();
+      const s = catalog.sounds[i];
+      if (!s) return;
+      if (!confirm('Delete sound “' + (s.label || s.id) + '”?' + (s.publicId ? '\n\nAlso remove file from Cloudinary.' : ''))) return;
+      if (s.publicId) {
+        try {
+          await api('/api/admin/cloudinary/destroy', {
+            method: 'POST',
+            body: JSON.stringify({ publicId: s.publicId })
+          });
+        } catch (e) {
+          console.warn('Cloudinary destroy failed', e);
+          // still remove from catalog
+        }
+      }
+      catalog.sounds.splice(i, 1);
+      renderSoundList();
+      syncSoundsTextarea();
+    }
+
+    async function loadCloudinaryStatus() {
+      const el = document.getElementById('cloudStatus');
+      const help = document.getElementById('cloudHelp');
+      const box = document.getElementById('uploadBox');
+      try {
+        const st = await api('/api/admin/cloudinary');
+        if (st.connected) {
+          el.innerHTML = '<span style="color:var(--ok)">● Connected</span> · ' + esc(st.cloudName || '');
+          help.classList.add('hidden');
+          box.classList.remove('hidden');
+        } else {
+          el.innerHTML = '<span style="color:var(--warn)">○ Not connected</span>';
+          help.classList.remove('hidden');
+          box.classList.add('hidden');
+        }
+      } catch (_) {
+        el.textContent = 'Cloudinary status unavailable';
+        help.classList.remove('hidden');
+        box.classList.add('hidden');
+      }
+    }
+
+    async function uploadSound(input) {
+      const file = input.files && input.files[0];
+      input.value = '';
+      if (!file) return;
+      if (!file.name.toLowerCase().endsWith('.mp3') && file.type !== 'audio/mpeg') {
+        alert('Only MP3 files are allowed (.wav / .m4a refused).');
+        return;
+      }
+      if (file.size > 15 * 1024 * 1024) {
+        alert('File too large (max 15 MB).');
+        return;
+      }
+
+      const prog = document.getElementById('uploadProgress');
+      const bar = document.getElementById('uploadBar');
+      const msg = document.getElementById('uploadMsg');
+      prog.classList.remove('hidden');
+      bar.style.width = '5%';
+      msg.textContent = 'Requesting upload signature…';
+
+      try {
+        const id = 'snd-' + Math.random().toString(36).slice(2, 10);
+        const sign = await api('/api/admin/cloudinary/sign', {
+          method: 'POST',
+          body: JSON.stringify({ publicId: 'timeora/sounds/' + id })
+        });
+        bar.style.width = '15%';
+        msg.textContent = 'Uploading to Cloudinary…';
+
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('api_key', sign.apiKey);
+        fd.append('timestamp', String(sign.timestamp));
+        fd.append('signature', sign.signature);
+        fd.append('public_id', sign.publicId);
+
+        // XMLHttpRequest for progress
+        const result = await new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', sign.uploadUrl);
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+              const pct = 15 + Math.round((e.loaded / e.total) * 80);
+              bar.style.width = pct + '%';
+            }
+          };
+          xhr.onload = () => {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              if (xhr.status >= 200 && xhr.status < 300 && data.secure_url) resolve(data);
+              else reject(new Error(data.error?.message || data.message || 'Upload failed'));
+            } catch (err) {
+              reject(err);
+            }
+          };
+          xhr.onerror = () => reject(new Error('Network error during upload'));
+          xhr.send(fd);
+        });
+
+        bar.style.width = '100%';
+        msg.textContent = 'Done';
+
+        catalog.sounds = collectSoundsFromUI();
+        catalog.sounds.push({
+          id,
+          label: file.name.replace(/\.mp3$/i, '').replace(/[_-]+/g, ' ').trim() || id,
+          emoji: '🎵',
+          url: result.secure_url,
+          publicId: result.public_id || sign.publicId,
+          hidden: false
+        });
+        renderSoundList();
+        syncSoundsTextarea();
+        setTimeout(() => {
+          prog.classList.add('hidden');
+          bar.style.width = '0%';
+          msg.textContent = '';
+        }, 1200);
+      } catch (e) {
+        msg.textContent = 'Error: ' + (e.message || e);
+        bar.style.width = '0%';
+        alert('Upload failed: ' + (e.message || e));
+      }
     }
 
     async function saveCatalog() {
@@ -836,11 +1080,31 @@
       const ann = document.getElementById('announcement').value.trim();
       catalog.announcement = ann ? { enabled: true, text: ann } : { enabled: false, text: '' };
       catalog.tips = document.getElementById('tips').value.split('\n').map((s) => s.trim()).filter(Boolean);
-      try {
-        catalog.sounds = JSON.parse(document.getElementById('sounds').value || '[]');
-      } catch (e) {
-        alert('Sounds JSON invalid'); return;
+
+      // Prefer live UI cards when present; otherwise parse Advanced JSON textarea
+      const cards = document.querySelectorAll('#soundList .card');
+      if (cards.length) {
+        catalog.sounds = collectSoundsFromUI();
+      } else {
+        try {
+          catalog.sounds = JSON.parse(document.getElementById('sounds').value || '[]');
+        } catch (e) {
+          alert('Sounds JSON invalid'); return;
+        }
       }
+
+      // basic validation
+      for (const s of catalog.sounds) {
+        if (!s.id || !/^snd-[a-z0-9]{4,24}$/.test(s.id)) {
+          alert('Invalid sound id: ' + (s.id || '(empty)') + ' — must match ^snd-[a-z0-9]{4,24}$');
+          return;
+        }
+        if (s.url && !String(s.url).startsWith('https://')) {
+          alert('Sound url must be https: ' + s.id);
+          return;
+        }
+      }
+
       await api('/api/admin/catalog', { method: 'PUT', body: JSON.stringify(catalog) });
       alert('Catalog saved');
       catalog = await api('/api/admin/catalog');
