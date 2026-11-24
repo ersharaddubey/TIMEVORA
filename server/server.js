@@ -146,21 +146,49 @@ function verifyAdmin(user, pass) {
   return user === ADMIN_USER && pass === ADMIN_PASS;
 }
 
-function issueSession(user) {
+async function issueSession(user) {
   const token = crypto.randomBytes(24).toString('hex');
   const exp = Date.now() + 12 * 60 * 60 * 1000;
-  mem.sessions.set(token, { user, exp });
+  const row = { user, exp };
+  mem.sessions.set(token, row);
+  // Persist on Mongo so Vercel serverless instances share the session
+  if (db) {
+    try {
+      await db.collection('admin_sessions').updateOne(
+        { _id: token },
+        { $set: { user, exp, createdAt: new Date() } },
+        { upsert: true }
+      );
+    } catch (e) {
+      console.warn('[timeora] session persist failed', e.message);
+    }
+  }
   return token;
 }
 
-function sessionOk(req) {
+async function sessionOk(req) {
   const auth = req.headers['authorization'] || '';
   const cookie = parseCookies(req)['timeora_admin'] || '';
   const token = (auth.startsWith('Bearer ') ? auth.slice(7) : '') || cookie;
   if (!token) return false;
-  const s = mem.sessions.get(token);
+
+  let s = mem.sessions.get(token);
+  if (!s && db) {
+    try {
+      const doc = await db.collection('admin_sessions').findOne({ _id: token });
+      if (doc) {
+        s = { user: doc.user, exp: doc.exp };
+        mem.sessions.set(token, s);
+      }
+    } catch (_) {}
+  }
   if (!s || s.exp < Date.now()) {
     mem.sessions.delete(token);
+    if (db) {
+      try {
+        await db.collection('admin_sessions').deleteOne({ _id: token });
+      } catch (_) {}
+    }
     return false;
   }
   return s;
@@ -458,27 +486,36 @@ async function handle(req, res) {
     if (req.method === 'POST' && p === '/api/admin/login') {
       const body = await readBody(req);
       if (!verifyAdmin(body?.user, body?.pass)) return send(res, 401, { error: 'Invalid credentials' });
-      const token = issueSession(body.user);
+      const token = await issueSession(body.user);
       return send(res, 200, { token, user: body.user }, {
         'Set-Cookie': `timeora_admin=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=43200`
       });
     }
 
     if (req.method === 'POST' && p === '/api/admin/logout') {
-      const cookie = parseCookies(req)['timeora_admin'];
-      if (cookie) mem.sessions.delete(cookie);
+      const auth = req.headers['authorization'] || '';
+      const cookie = parseCookies(req)['timeora_admin'] || '';
+      const token = (auth.startsWith('Bearer ') ? auth.slice(7) : '') || cookie;
+      if (token) {
+        mem.sessions.delete(token);
+        if (db) {
+          try {
+            await db.collection('admin_sessions').deleteOne({ _id: token });
+          } catch (_) {}
+        }
+      }
       return send(res, 200, { ok: true }, {
         'Set-Cookie': 'timeora_admin=; Path=/; Max-Age=0'
       });
     }
 
     if (p.startsWith('/api/admin')) {
-      if (!sessionOk(req)) return send(res, 401, { error: 'Unauthorized' });
+      if (!(await sessionOk(req))) return send(res, 401, { error: 'Unauthorized' });
     }
 
     if (req.method === 'GET' && p === '/api/admin/me') {
-      const s = sessionOk(req);
-      return send(res, 200, { user: s.user, version: '5.7.0', mongo: !!db });
+      const s = await sessionOk(req);
+      return send(res, 200, { user: s.user, version: '5.7.0', mongo: !!db, cloudinary: CLOUDINARY_READY });
     }
 
     if (req.method === 'GET' && p === '/api/admin/catalog') {
