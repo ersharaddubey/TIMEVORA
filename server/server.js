@@ -1,10 +1,3 @@
-/**
- * TIMEORA server v5.7.0
- * - Public: catalog, health, feature events, live rooms, opt-in device sync → MongoDB
- * - Admin: /admin UI — catalog features/banners/tips/announcement/sounds, event stats, sync devices
- *
- * Env: MONGODB_URI, ADMIN_USER, ADMIN_PASS, PORT, SESSION_SECRET, ALLOWED_ORIGIN
- */
 'use strict';
 
 const http = require('http');
@@ -22,7 +15,9 @@ const PORT = Number(process.env.PORT || 3000);
 const MONGODB_URI = process.env.MONGODB_URI || '';
 const ADMIN_USER = process.env.ADMIN_USER || 'admin';
 const ADMIN_PASS = process.env.ADMIN_PASS || 'admin';
-const SESSION_SECRET = process.env.SESSION_SECRET || (process.env.VERCEL ? '' : crypto.randomBytes(24).toString('hex'));
+const SESSION_SECRET = process.env.SESSION_SECRET
+  || (process.env.ADMIN_PASS ? crypto.createHash('sha256').update('timeora-session:' + process.env.ADMIN_PASS).digest('hex') : '')
+  || (process.env.VERCEL ? '' : crypto.randomBytes(24).toString('hex'));
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
 
 const SEED_PATH = path.join(__dirname, 'seed-catalog.json');
@@ -259,6 +254,7 @@ async function handle(req, res) {
         ok: true,
         version: '5.7.0',
         mongo: !!db,
+        mongoConfigured: !!MONGODB_URI,
         features: (await getCatalog()).features?.length || 0
       });
     }
@@ -588,17 +584,68 @@ async function handle(req, res) {
   }
 }
 
+function missingVercelEnv() {
+  const missing = [];
+  if (!MONGODB_URI) missing.push('MONGODB_URI');
+  if (!process.env.ADMIN_USER) missing.push('ADMIN_USER');
+  if (!process.env.ADMIN_PASS) missing.push('ADMIN_PASS');
+  // SESSION_SECRET is optional when ADMIN_PASS is set (derived above)
+  if (!SESSION_SECRET) missing.push('SESSION_SECRET (or set ADMIN_PASS so one can be derived)');
+  return missing;
+}
+
 async function handler(req, res) {
+  const urlPath = String((req.url || '').split('?')[0] || '').replace(/\/+$/, '') || '/';
+  const isHealth = urlPath === '/api/health' || urlPath === '/health';
+
   try {
-    if (process.env.VERCEL && (!MONGODB_URI || !SESSION_SECRET || !process.env.ADMIN_USER || !process.env.ADMIN_PASS)) {
-      throw new Error('Required Vercel environment variables are missing');
+    if (process.env.VERCEL) {
+      const missing = missingVercelEnv();
+      if (missing.length) {
+        const detail = 'Missing Vercel env: ' + missing.join(', ') +
+          '. Project → Settings → Environment Variables → add them for Production → Redeploy.';
+        console.error('[timeora] ' + detail);
+        if (!res.headersSent) {
+          send(res, 500, {
+            error: 'Server configuration or database error',
+            detail,
+            missing,
+            ok: false
+          });
+        }
+        return;
+      }
     }
-    await ensureMongo();
+
+    try {
+      await ensureMongo();
+    } catch (mongoErr) {
+      const detail = 'MongoDB connection failed: ' + (mongoErr && mongoErr.message ? mongoErr.message : String(mongoErr)) +
+        '. Check MONGODB_URI, Atlas user/password (URL-encode special chars), Network Access 0.0.0.0/0, cluster not paused.';
+      console.error('[timeora] ' + detail);
+      if (isHealth && !res.headersSent) {
+        send(res, 503, {
+          ok: false,
+          error: 'Server configuration or database error',
+          detail,
+          mongoConfigured: !!MONGODB_URI
+        });
+        return;
+      }
+      if (!res.headersSent) {
+        send(res, 500, { error: 'Server configuration or database error', detail });
+      }
+      return;
+    }
+
     await handle(req, res);
   } catch (e) {
     console.error(e);
     if (!res.headersSent) {
-      send(res, 500, { error: 'Server configuration or database error' });
+      send(res, 500, {
+        error: 'Server configuration or database error',
+        detail: e.message || 'Server error'
+      });
     }
   }
 }
