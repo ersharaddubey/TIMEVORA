@@ -1,3 +1,11 @@
+/**
+ * TIMEORA server v5.7.0
+ * - Public: catalog, health, feature events, live rooms, opt-in device sync → MongoDB
+ * - Admin: /admin UI — catalog features/banners/tips/announcement/sounds (Cloudinary upload), event stats, sync devices
+ *
+ * Env: MONGODB_URI, ADMIN_USER, ADMIN_PASS, PORT, SESSION_SECRET, ALLOWED_ORIGIN,
+ *      CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET (optional, for MP3 upload)
+ */
 'use strict';
 
 const http = require('http');
@@ -17,6 +25,12 @@ const ADMIN_USER = process.env.ADMIN_USER || 'admin';
 const ADMIN_PASS = process.env.ADMIN_PASS || 'admin';
 const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(24).toString('hex');
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
+
+const CLOUDINARY_CLOUD_NAME = (process.env.CLOUDINARY_CLOUD_NAME || '').trim();
+const CLOUDINARY_API_KEY = (process.env.CLOUDINARY_API_KEY || '').trim();
+const CLOUDINARY_API_SECRET = (process.env.CLOUDINARY_API_SECRET || '').trim();
+const CLOUDINARY_READY =
+  !!CLOUDINARY_CLOUD_NAME && !!CLOUDINARY_API_KEY && !!CLOUDINARY_API_SECRET;
 
 const SEED_PATH = path.join(__dirname, 'seed-catalog.json');
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -81,6 +95,55 @@ async function saveCatalog(catalog) {
   } else {
     mem.catalog = catalog;
   }
+}
+
+/** Public catalog: strip internal fields and hide hidden sounds */
+function publicCatalog(catalog) {
+  const out = { ...catalog };
+  const sounds = Array.isArray(catalog.sounds) ? catalog.sounds : [];
+  out.sounds = sounds
+    .filter((s) => s && s.hidden !== true)
+    .map((s) => ({
+      id: s.id,
+      label: s.label || '',
+      emoji: s.emoji || '🎵',
+      url: s.url || ''
+    }));
+  return out;
+}
+
+function cloudinarySignature(params) {
+  // params: object of string values (no api_key, no file, no resource_type in some cases)
+  const sorted = Object.keys(params)
+    .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== '')
+    .sort()
+    .map((k) => `${k}=${params[k]}`)
+    .join('&');
+  return crypto
+    .createHash('sha1')
+    .update(sorted + CLOUDINARY_API_SECRET)
+    .digest('hex');
+}
+
+async function cloudinaryDestroy(publicId) {
+  if (!CLOUDINARY_READY || !publicId) return { ok: false, reason: 'not_configured' };
+  const timestamp = Math.floor(Date.now() / 1000);
+  const params = { public_id: publicId, timestamp: String(timestamp) };
+  const signature = cloudinarySignature(params);
+  const body = new URLSearchParams({
+    public_id: publicId,
+    timestamp: String(timestamp),
+    api_key: CLOUDINARY_API_KEY,
+    signature
+  });
+  const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/video/destroy`;
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString()
+  });
+  const data = await r.json().catch(() => ({}));
+  return { ok: r.ok || data.result === 'ok' || data.result === 'not found', data };
 }
 
 function scryptHash(pass, salt) {
@@ -214,9 +277,9 @@ async function handle(req, res) {
       });
     }
 
-    // Catalog (app)
+    // Catalog (app) — hides admin-only fields and hidden sounds
     if (req.method === 'GET' && p === '/api/catalog') {
-      return send(res, 200, await getCatalog());
+      return send(res, 200, publicCatalog(await getCatalog()));
     }
 
     // Feature open events
@@ -517,7 +580,7 @@ async function handle(req, res) {
           'Home banners',
           'Announcement bar',
           'Daily tips',
-          'Cloud ambient sounds (https MP3)',
+          'Cloud ambient sounds (upload MP3 via Cloudinary or paste https URL)',
           'Feature open analytics (anonymous)',
           'Opt-in sync device list + wipe (MongoDB)',
           'Live rooms count'
@@ -529,8 +592,59 @@ async function handle(req, res) {
           'Festival themes (app ignores; not exposed)'
         ],
         syncTables: SYNC_TABLES,
-        mongo: !!db
+        mongo: !!db,
+        cloudinary: CLOUDINARY_READY
       });
+    }
+
+    // Cloudinary status for admin UI
+    if (req.method === 'GET' && p === '/api/admin/cloudinary') {
+      return send(res, 200, {
+        connected: CLOUDINARY_READY,
+        cloudName: CLOUDINARY_READY ? CLOUDINARY_CLOUD_NAME : null,
+        help: CLOUDINARY_READY
+          ? null
+          : 'Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET in env and redeploy. Free account at cloudinary.com'
+      });
+    }
+
+    // Signed params so admin browser can upload MP3 directly to Cloudinary
+    if (req.method === 'POST' && p === '/api/admin/cloudinary/sign') {
+      if (!CLOUDINARY_READY) {
+        return send(res, 400, { error: 'Cloudinary not configured. Add the 3 CLOUDINARY_* env vars.' });
+      }
+      const body = await readBody(req);
+      const publicId =
+        (body && body.publicId && String(body.publicId).replace(/[^a-zA-Z0-9_\/\-]/g, '').slice(0, 120)) ||
+        `timeora/sounds/snd-${crypto.randomBytes(4).toString('hex')}`;
+      const timestamp = Math.floor(Date.now() / 1000);
+      // folder is part of public_id; we sign public_id + timestamp (+ optional resource_type)
+      const toSign = {
+        public_id: publicId,
+        timestamp: String(timestamp)
+      };
+      const signature = cloudinarySignature(toSign);
+      return send(res, 200, {
+        cloudName: CLOUDINARY_CLOUD_NAME,
+        apiKey: CLOUDINARY_API_KEY,
+        timestamp,
+        signature,
+        publicId,
+        // client must use resource_type=video (or auto) for audio
+        uploadUrl: `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/video/upload`
+      });
+    }
+
+    // Destroy a Cloudinary asset by public_id (after admin deletes a sound)
+    if (req.method === 'POST' && p === '/api/admin/cloudinary/destroy') {
+      if (!CLOUDINARY_READY) {
+        return send(res, 400, { error: 'Cloudinary not configured' });
+      }
+      const body = await readBody(req);
+      const publicId = body && body.publicId ? String(body.publicId) : '';
+      if (!publicId) return send(res, 400, { error: 'publicId required' });
+      const result = await cloudinaryDestroy(publicId);
+      return send(res, 200, result);
     }
 
     return send(res, 404, { error: 'Not found' });
