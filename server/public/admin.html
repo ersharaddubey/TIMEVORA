@@ -982,10 +982,24 @@
           help.classList.remove('hidden');
           box.classList.add('hidden');
         }
-      } catch (_) {
-        el.textContent = 'Cloudinary status unavailable';
-        help.classList.remove('hidden');
-        box.classList.add('hidden');
+      } catch (e) {
+        // Fallback via /me (same auth) — also surfaces real error text
+        try {
+          const me = await api('/api/admin/me');
+          if (me.cloudinary) {
+            el.innerHTML = '<span style="color:var(--ok)">● Connected</span>';
+            help.classList.add('hidden');
+            box.classList.remove('hidden');
+            return;
+          }
+          el.innerHTML = '<span style="color:var(--warn)">○ Not connected</span>';
+          help.classList.remove('hidden');
+          box.classList.add('hidden');
+        } catch (e2) {
+          el.innerHTML = '<span style="color:var(--warn)">○ Auth/session issue</span> <span class="muted">(' + esc(e.message || e2.message || 'error') + ') — Sign out & sign in again</span>';
+          help.classList.remove('hidden');
+          box.classList.add('hidden');
+        }
       }
     }
 
