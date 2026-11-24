@@ -680,6 +680,7 @@
         const me = await api('/api/admin/me');
         document.getElementById('loginBox').style.display = 'none';
         document.getElementById('app').classList.add('show');
+        const label = me.user + (me.mongo ? ' · MongoDB' : ' · memory');
         document.getElementById('metaTag').textContent = 'app ' + me.version + (me.mongo ? ' · MongoDB' : ' · memory');
         document.getElementById('userName').textContent = me.user || 'admin';
         document.getElementById('userAvatar').textContent = (me.user || 'A').charAt(0).toUpperCase();
@@ -879,6 +880,7 @@
       loadDevices();
     }
 
+    // Enter key on login
     document.getElementById('pass').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') login();
     });
