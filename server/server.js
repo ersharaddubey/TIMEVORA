@@ -1,11 +1,3 @@
-/**
- * TIMEORA server v5.7.0
- * - Public: catalog, health, feature events, live rooms, opt-in device sync → MongoDB
- * - Admin: /admin UI — catalog features/banners/tips/announcement/sounds (Cloudinary upload), event stats, sync devices
- *
- * Env: MONGODB_URI, ADMIN_USER, ADMIN_PASS, PORT, SESSION_SECRET, ALLOWED_ORIGIN,
- *      CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET (optional, for MP3 upload)
- */
 'use strict';
 
 const http = require('http');
