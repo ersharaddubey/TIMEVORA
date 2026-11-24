@@ -1,0 +1,87 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terms of Service | TIMEVORA</title>
+<meta name="description" content="Terms of Service for TIMEVORA application.">
+<style>
+body{margin:0;background:#f5f6fa;color:#202333;font-family:Arial,sans-serif;line-height:1.7}
+header{background:#171827;color:white;text-align:center;padding:45px 20px}
+main{max-width:850px;margin:35px auto;background:white;padding:35px;border-radius:14px}
+h2{margin-top:30px;color:#25294a}
+a{color:#5145d8}
+footer{text-align:center;padding:25px;color:#777}
+@media(max-width:600px){main{margin:15px;padding:20px}}
+</style>
+</head>
+<body>
+<header>
+<h1>TIMEVORA</h1>
+<p>Terms of Service</p>
+</header>
+<main>
+<p><strong>Effective Date:</strong> November 23, 2026</p>
+
+<p>Welcome to TIMEVORA. These Terms govern your use of our application and related services. By using the Service, you agree to these Terms.</p>
+
+<h2>1. About TIMEVORA</h2>
+<p>TIMEVORA provides tools and features designed to help users manage and use time-related information and services through the application.</p>
+
+<h2>2. Eligibility</h2>
+<p>You must be legally permitted to use the Service in your location. Users who require parental or guardian consent under applicable law must obtain it before using the Service.</p>
+
+<h2>3. Free Service and Advertisements</h2>
+<p>Some features may be offered free of charge. We may display advertisements to support the operation of TIMEVORA. Third-party advertising providers may use their own technologies and policies.</p>
+
+<h2>4. Application Information</h2>
+<p>Information, calculations, notifications and other content provided by TIMEVORA are intended for general informational and utility purposes. We do not guarantee that all information will always be accurate, complete or uninterrupted.</p>
+
+<h2>5. User Content and Data</h2>
+<p>You are responsible for the information and content you enter into the application. You must ensure that your use of the Service complies with applicable laws. Your information is handled in accordance with our Privacy Policy.</p>
+
+<h2>6. Acceptable Use</h2>
+<p>You must not use TIMEVORA to:</p>
+<ul>
+<li>Violate applicable laws or regulations.</li>
+<li>Infringe intellectual property, privacy or other rights.</li>
+<li>Use the application for unlawful, fraudulent or harmful activities.</li>
+<li>Upload malware or attempt unauthorized access.</li>
+<li>Disrupt, exploit or abuse the Service.</li>
+<li>Circumvent security measures or usage restrictions.</li>
+</ul>
+
+<h2>7. Intellectual Property</h2>
+<p>TIMEVORA's branding, software, interface, design and platform materials may be protected by intellectual property laws. You may not copy, modify, distribute or commercially exploit these materials without appropriate authorization.</p>
+
+<h2>8. Third-Party Services</h2>
+<p>The Service may use third-party services, including hosting, analytics and advertising providers. Their services may be governed by separate terms and privacy policies. We do not control independently operated third-party services.</p>
+
+<h2>9. Service Availability</h2>
+<p>We do not guarantee uninterrupted or error-free availability. Features may be modified, suspended or discontinued for operational, security or legal reasons.</p>
+
+<h2>10. Disclaimer</h2>
+<p>To the extent permitted by law, the Service is provided on an available basis without guarantees that it will meet every user's expectations or requirements.</p>
+
+<h2>11. Limitation of Liability</h2>
+<p>To the extent permitted by applicable law, we are not liable for indirect or consequential losses arising from use of the Service. Nothing in these Terms excludes liability that cannot legally be excluded.</p>
+
+<h2>12. Suspension and Termination</h2>
+<p>We may restrict or terminate access for material violations of these Terms, misuse, security risks or legal requirements. You may stop using TIMEVORA at any time.</p>
+
+<h2>13. Changes to These Terms</h2>
+<p>We may update these Terms from time to time. Changes will be published on this page with an updated effective date.</p>
+
+<h2>14. Governing Law</h2>
+<p>These Terms are subject to applicable laws. Disputes will be handled by the courts or authorities having jurisdiction under applicable law.</p>
+
+<h2>15. Contact Us</h2>
+<p><strong>Publisher:</strong> Sharad Dubey<br>
+<strong>Product:</strong> TIMEVORA<br>
+<strong>Email:</strong> <a href="mailto:ersharaddubey@gmail.com">ersharaddubey@gmail.com</a></p>
+</main>
+<footer>© 2026 TIMEVORA. All rights reserved.</footer>
+</body>
+</html>
+```
