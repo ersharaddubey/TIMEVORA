@@ -173,7 +173,9 @@ object Sync {
 
 class SyncWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, params) {
     override suspend fun doWork(): Result {
-        Sync.run(applicationContext, force = true)
-        return Result.success()
+        if (!Sync.enabled(applicationContext) || !Remote.isConfigured(applicationContext)) {
+            return Result.success()
+        }
+        return if (Sync.run(applicationContext, force = true)) Result.success() else Result.retry()
     }
 }
