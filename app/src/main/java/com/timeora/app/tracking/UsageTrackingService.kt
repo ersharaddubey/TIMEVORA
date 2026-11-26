@@ -3,8 +3,10 @@ package com.timevora.app.tracking
 import android.app.*
 import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.PixelFormat
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
@@ -44,16 +46,49 @@ class UsageTrackingService : Service() {
     private var pauseTick: Runnable? = null
     private val pauseUntilByPackage = mutableMapOf<String, Long>()
     private val trackingState by lazy { getSharedPreferences("timevora_tracking_state", MODE_PRIVATE) }
+    @Volatile private var screenOn = true
+    private val screenStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action) {
+                Intent.ACTION_SCREEN_OFF -> {
+                    screenOn = false
+                    // Save the active session immediately; do not keep polling while display is off.
+                    scope.launch { runCatching { closeSession(System.currentTimeMillis()) } }
+                }
+                Intent.ACTION_SCREEN_ON -> {
+                    screenOn = true
+                    // Reconstruct the foreground app when the display becomes interactive again.
+                    scope.launch { runCatching { initCurrentApp() } }
+                }
+            }
+        }
+    }
 
     override fun onCreate() {
         super.onCreate()
         createChannel()
         Channels.ensure(this)
         startForeground(41, buildNotification("Usage tracking is active"))
-        initCurrentApp()
+        screenOn = (getSystemService(Context.POWER_SERVICE) as android.os.PowerManager).isInteractive
+        val screenFilter = IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_OFF)
+            addAction(Intent.ACTION_SCREEN_ON)
+        }
+        if (Build.VERSION.SDK_INT >= 33) {
+            registerReceiver(screenStateReceiver, screenFilter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("DEPRECATION")
+            registerReceiver(screenStateReceiver, screenFilter)
+        }
+        if (screenOn) initCurrentApp()
         showBubbleIfAllowed()
         trackingJob = scope.launch {
             while (isActive) {
+                if (!screenOn) {
+                    // Low-frequency wait only; UsageStats polling and UI/notification work stay paused.
+                    delay(5000)
+                    continue
+                }
                 try {
                     pollUsageEvents()
                     updateBubble()
@@ -545,6 +580,7 @@ class UsageTrackingService : Service() {
                 closeSession(System.currentTimeMillis())
             }
         }
+        runCatching { unregisterReceiver(screenStateReceiver) }
         mainHandler.removeCallbacksAndMessages(null)
         removeBubble()
         scope.cancel()
