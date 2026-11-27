@@ -11,7 +11,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.core.graphics.ColorUtils
 
 /**
- * The one colour pattern of timevora: a calm professional blue on slate neutrals, in a light and a dark version.
+ * Homeline-inspired clean modern theme for TIMEVORA.
+ * Bright iOS-style blue on soft light backgrounds, with a matching dark mode.
  * One plain [Palette] (ARGB ints) feeds both the Compose UI ([ThemeState]) and the home-screen widgets
  * ([ThemeStore.resolve]), so the app and its widgets always match. To change the look, change only [AppColors].
  */
@@ -28,7 +29,7 @@ data class Palette(
     val soft: Int get() = ColorUtils.blendARGB(accent, card, if (dark) 0.84f else 0.88f)
     val soft2: Int get() = ColorUtils.blendARGB(accent2, card, if (dark) 0.84f else 0.88f)
     /** Background of the pastel info panels (weekly summary etc.). */
-    val panel: Int get() = if (dark) ColorUtils.blendARGB(accent, card, 0.88f) else 0xFFEFF4FF.toInt()
+    val panel: Int get() = if (dark) ColorUtils.blendARGB(accent, card, 0.88f) else 0xFFE8F1FF.toInt()
     /** Secondary text colour that works on [card] and [canvas]. */
     val muted: Int get() = ColorUtils.blendARGB(ink, card, 0.45f)
     /** Readable text colour on top of the accent colour. */
@@ -38,13 +39,26 @@ data class Palette(
 private fun rgb(hex: Long): Int = (0xFF000000L or hex).toInt()
 
 object AppColors {
+    // Homeline-style clean light theme
     val light = Palette(
-        dark = false, accent = rgb(0x2563EB), accent2 = rgb(0x0891B2),
-        canvas = rgb(0xF3F5F8), card = rgb(0xFFFFFF), ink = rgb(0x1E293B), hero = rgb(0x1E3A5F)
+        dark = false,
+        accent = rgb(0x007AFF),      // Bright primary blue (Homeline buttons)
+        accent2 = rgb(0x5AC8FA),     // Soft secondary blue
+        canvas = rgb(0xF2F4F7),      // Soft light gray background
+        card = rgb(0xFFFFFF),        // Pure white cards
+        ink = rgb(0x1C1C1E),         // Near-black text
+        hero = rgb(0x0A2540)         // Deep navy for hero sections
     )
+
+    // Matching dark mode
     val dark = Palette(
-        dark = true, accent = rgb(0x3B82F6), accent2 = rgb(0x22D3EE),
-        canvas = rgb(0x0F172A), card = rgb(0x1E293B), ink = rgb(0xE2E8F0), hero = rgb(0x1E3A5F)
+        dark = true,
+        accent = rgb(0x0A84FF),      // Bright blue for dark mode
+        accent2 = rgb(0x64D2FF),     // Cyan secondary
+        canvas = rgb(0x000000),      // True black background
+        card = rgb(0x1C1C1E),        // Dark card
+        ink = rgb(0xF5F5F7),         // Light text
+        hero = rgb(0x0A2540)
     )
 }
 
