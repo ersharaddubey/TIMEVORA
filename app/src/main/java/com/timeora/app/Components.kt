@@ -17,10 +17,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 
-// Plain, single-look building blocks. There are no design styles any more: every card and row is a flat coloured rounded shape.
+// Clean Homeline-inspired building blocks. Soft rounded cards and consistent shapes.
 
-/** Rounded corner shape used for cards and rows. */
-internal fun styleShape(n: Int): Shape = RoundedCornerShape(n.dp)
+/** Rounded corner shape used for cards and rows (slightly softer than before). */
+internal fun styleShape(n: Int = 16): Shape = RoundedCornerShape(n.dp)
 
 /** Fills a surface with [base] in [shape]. [lite] (small rows) skips clipping the children. */
 internal fun Modifier.styled(base: Color, shape: Shape, lite: Boolean = false): Modifier =
@@ -35,7 +35,7 @@ object CardDefaults {
 @Composable
 internal fun Card(
     modifier: Modifier = Modifier,
-    shape: Shape = styleShape(12),
+    shape: Shape = styleShape(16),
     colors: CardColors = CardDefaults.cardColors(),
     content: @Composable ColumnScope.() -> Unit
 ) {
@@ -55,8 +55,14 @@ internal fun Button(
     content: @Composable RowScope.() -> Unit
 ) {
     androidx.compose.material3.Button(
-        onClick = onClick, modifier = modifier, enabled = enabled, shape = shape ?: ButtonDefaults.shape, colors = colors,
-        border = border, contentPadding = contentPadding, content = content
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        shape = shape ?: RoundedCornerShape(12.dp),
+        colors = colors,
+        border = border,
+        contentPadding = contentPadding,
+        content = content
     )
 }
 
@@ -72,7 +78,13 @@ internal fun OutlinedButton(
     content: @Composable RowScope.() -> Unit
 ) {
     androidx.compose.material3.OutlinedButton(
-        onClick = onClick, modifier = modifier, enabled = enabled, shape = shape ?: ButtonDefaults.outlinedShape, colors = colors,
-        border = border, contentPadding = contentPadding, content = content
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        shape = shape ?: RoundedCornerShape(12.dp),
+        colors = colors,
+        border = border,
+        contentPadding = contentPadding,
+        content = content
     )
 }
