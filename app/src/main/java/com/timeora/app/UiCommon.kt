@@ -27,8 +27,8 @@ import com.timevora.app.data.AppUsageTotal
 import com.timevora.app.util.Fmt
 import kotlinx.coroutines.delay
 
-// timevora has one colour pattern (see Theme.kt: AppColors, light and dark), so the whole app and the home-screen widgets match.
-// Light: primary #2563EB, secondary #0891B2, ink #1E293B, canvas #F3F5F8.
+// Homeline-inspired clean theme (see Theme.kt: AppColors).
+// Light: primary #007AFF, secondary #5AC8FA, ink #1C1C1E, canvas #F2F4F7.
 internal val Navy: Color get() = Color(ThemeState.palette.ink)            // main text colour
 internal val HeroBg: Color get() = Color(ThemeState.palette.hero)         // dark hero cards that carry light text
 internal val CardBg: Color get() = Color(ThemeState.palette.card)         // normal cards / sheets
@@ -82,7 +82,7 @@ internal fun MiniStat(label: String, value: String, modifier: Modifier = Modifie
 
 @Composable
 internal fun UsageRow(row: AppUsageTotal) {
-    Row(Modifier.fillMaxWidth().styled(CardBg, styleShape(14), lite = true).padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth().styled(CardBg, styleShape(16), lite = true).padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
             Text(row.appLabel, fontWeight = FontWeight.SemiBold, color = Navy)
             Text("${row.sessions} recorded session(s)", fontSize = 11.sp, color = Color.Gray)
